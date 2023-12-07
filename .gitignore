@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+.gitsecret/keys/random_seed
+!*.secret
+env.json
+
+# QueryDSL generated files
+/build/
+/src/main/generated
