@@ -57,6 +57,21 @@ public class NewsController {
         return new Result<>(newsListDto);
     }
 
+    /**
+     * 뉴스 detail 보기
+     * detail 볼 때 마다 조회수가 1씩 증가
+     * @param id
+     * @return
+     */
+    @GetMapping(value = "/news/{id}")
+    public Result<NewsDto> newsDetail(@PathVariable(name = "id") Long id){
+        log.info(id.toString());
+        News news = newsService.newsDetail(id);
+        NewsDto newsDto = new NewsDto(news);
+
+        return new Result<>(newsDto);
+    }
+
     @Data
     static class Result <T>{
         private T data;

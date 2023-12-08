@@ -6,9 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.newscuratorservicehomeproposal.domain.News;
+import project.newscuratorservicehomeproposal.exception.customException.NotFoundException;
 import project.newscuratorservicehomeproposal.repository.NewsRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -40,5 +42,14 @@ public class NewsService {
         log.info(news.toString());
 
         return news;
+    }
+
+    public News newsDetail(Long id) {
+
+        Optional<News> news = newsRepository.findById(id);
+        if(news.isEmpty()){
+            throw new NotFoundException();
+        }
+        return news.get();
     }
 }

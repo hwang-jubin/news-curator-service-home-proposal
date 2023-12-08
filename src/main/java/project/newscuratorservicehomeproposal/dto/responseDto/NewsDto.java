@@ -14,6 +14,7 @@ public class NewsDto {
     private String main;
     private String reporter;
     private LocalDateTime createNewsDate;
+    private LocalDateTime updateNewsDate;
 
     public NewsDto(News news){
         this.id = news.getId();
@@ -21,6 +22,7 @@ public class NewsDto {
         this.main = news.getMain();
         this.reporter = news.getReporter();
         this.createNewsDate = news.getCreateNewsDate();
+        this.updateNewsDate = news.getUpdateNewsDate();
     }
 
 }
