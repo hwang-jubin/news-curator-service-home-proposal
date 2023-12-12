@@ -17,6 +17,11 @@ import org.springframework.data.redis.connection.stream.*;
 public class NewsViewService {
     private final RedisTemplate<String, String> redisTemplate;
 
+    /**
+     * news datail가 조회 될 때마다, new_id 가 steam 형으로 redis 에 적재
+     * @param id
+     * @return
+     */
     public RecordId addNewsView(Long id) {
         //Map에 여러가지 field를 넣을 수 있음
         Map<String, String> map = new HashMap<>();
