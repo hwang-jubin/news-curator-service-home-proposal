@@ -1,5 +1,6 @@
 package project.newscuratorservicehomeproposal.service;
 
+import io.lettuce.core.Consumer;
 import io.lettuce.core.StreamMessage;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -14,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.redis.connection.stream.*;
+//import org.springframework.data.redis.connection.stream.*;
 
 @Service
 @Slf4j
@@ -26,6 +27,8 @@ public class NewsViewService {
 
     private static final String streamKey = "newsStream";
     private static final String sortedSetKey = "newsSortedSet";
+    private static final String consumerGroup = "newsGroup";
+    private static final String consumerName = "spring";
     public void addNewsView(Long id) {
 
         Map<String, String> map = new HashMap<>();
@@ -37,8 +40,10 @@ public class NewsViewService {
     //stream 에서 읽어온 후 sortedSet에 적재
     public void streamToSortedSet() {
         XReadArgs.StreamOffset<String> streamOffset = XReadArgs.StreamOffset.from(streamKey, "0");
-        List<StreamMessage<String, String>> messages = redisCommands.xread(XReadArgs.Builder.block(1000), streamOffset);
-        Consumer consumer = Consumer.from("newsGroup", "spring");
+//        List<StreamMessage<String, String>> messages = redisCommands.xread(XReadArgs.Builder.block(1000), streamOffset);
+        Consumer consumer = Consumer.from(consumerGroup, consumerName);
+        List<StreamMessage<String, String>> messages =  redisCommands.xreadgroup(consumer, streamOffset);
+
 
         for (StreamMessage<String, String> message : messages) {
             Map<String, String> messageList = message.getBody();
@@ -58,7 +63,6 @@ public class NewsViewService {
                     }
                 }
             }
-
-            }
         }
     }
+}
