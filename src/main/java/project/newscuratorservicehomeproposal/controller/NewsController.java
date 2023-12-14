@@ -7,12 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import project.newscuratorservicehomeproposal.domain.News;
 import project.newscuratorservicehomeproposal.dto.responseDto.NewsDto;
 import project.newscuratorservicehomeproposal.dto.responseDto.NewsListDto;
 import project.newscuratorservicehomeproposal.service.NewsService;
+import project.newscuratorservicehomeproposal.service.NewsViewService;
 
 import java.util.List;
 
@@ -21,6 +21,7 @@ import java.util.List;
 @RestController
 public class NewsController {
     private final NewsService newsService;
+    private final NewsViewService newsViewService;
 
     /**
      * 뉴스 등록하기
@@ -59,7 +60,6 @@ public class NewsController {
 
     /**
      * 뉴스 detail 보기
-     * detail 볼 때 마다 조회수가 1씩 증가
      * @param id
      * @return
      */
@@ -67,10 +67,21 @@ public class NewsController {
     public Result<NewsDto> newsDetail(@PathVariable(name = "id") Long id){
         log.info(id.toString());
         News news = newsService.newsDetail(id);
+        //조회 entity redis 에 적재
+        newsViewService.addNewsView(id);
+
         NewsDto newsDto = new NewsDto(news);
 
         return new Result<>(newsDto);
     }
+
+    @GetMapping(value = "/news/sortedSet")
+    public String sortedSet(){
+        newsViewService.streamToSortedSet();
+
+        return "ok";
+    }
+
 
     @Data
     static class Result <T>{
