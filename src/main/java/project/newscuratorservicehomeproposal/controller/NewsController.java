@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import project.newscuratorservicehomeproposal.domain.News;
 import project.newscuratorservicehomeproposal.dto.responseDto.NewsDto;
@@ -75,6 +74,14 @@ public class NewsController {
 
         return new Result<>(newsDto);
     }
+
+    @GetMapping(value = "/news/sortedSet")
+    public String sortedSet(){
+        newsViewService.streamToSortedSet();
+
+        return "ok";
+    }
+
 
     @Data
     static class Result <T>{

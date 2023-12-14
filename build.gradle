@@ -43,8 +43,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.lettuce:lettuce-core:6.3.0.RELEASE'
-
-
 }
 
 tasks.named('test') {

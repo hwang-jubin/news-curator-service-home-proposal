@@ -1,11 +1,17 @@
 package project.newscuratorservicehomeproposal.service;
 
+import io.lettuce.core.StreamMessage;
+import io.lettuce.core.XReadArgs;
+import io.lettuce.core.api.sync.RedisCommands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.redis.connection.stream.*;
@@ -16,20 +22,43 @@ import org.springframework.data.redis.connection.stream.*;
 @RequiredArgsConstructor
 public class NewsViewService {
     private final RedisTemplate<String, String> redisTemplate;
+    private final RedisCommands<String, String> redisCommands;
 
-    /**
-     * news datail가 조회 될 때마다, new_id 가 steam 형으로 redis 에 적재
-     * @param id
-     * @return
-     */
-    public RecordId addNewsView(Long id) {
-        //Map에 여러가지 field를 넣을 수 있음
+    private static final String streamKey = "newsStream";
+    private static final String sortedSetKey = "newsSortedSet";
+    public void addNewsView(Long id) {
+
         Map<String, String> map = new HashMap<>();
         map.put("newsId", id.toString());
 
-        //RecordId = Redis에서 저장되는 UNIX 타임스탬프
-        RecordId redisId = redisTemplate.opsForStream().add("news_stream", map);
-        return redisId;
+        redisCommands.xadd(streamKey, map);
     }
 
-}
+    //stream 에서 읽어온 후 sortedSet에 적재
+    public void streamToSortedSet() {
+        XReadArgs.StreamOffset<String> streamOffset = XReadArgs.StreamOffset.from(streamKey, "0");
+        List<StreamMessage<String, String>> messages = redisCommands.xread(XReadArgs.Builder.block(1000), streamOffset);
+        Consumer consumer = Consumer.from("newsGroup", "spring");
+
+        for (StreamMessage<String, String> message : messages) {
+            Map<String, String> messageList = message.getBody();
+            for (Map.Entry<String, String> entry : messageList.entrySet() ) {
+                String newsId = entry.getValue();
+
+                if (newsId != null) {
+                    // 기존 값이 있는지 확인
+                    Double score = redisCommands.zscore(sortedSetKey, newsId);
+
+                    if (score != null) {
+                        // 이미 값이 있는 경우, 개수를 증가
+                        redisCommands.zincrby(sortedSetKey, 1, newsId);
+                    } else {
+                        // 값이 없는 경우, 새로 추가
+                        redisCommands.zadd(sortedSetKey, 1, newsId);
+                    }
+                }
+            }
+
+            }
+        }
+    }
